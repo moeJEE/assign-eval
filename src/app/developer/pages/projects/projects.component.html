@@ -1,0 +1,289 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-6 py-6">
+            <p-toast></p-toast>
+            <p-toolbar styleClass="mb-4">
+                <ng-template pTemplate="left">
+                    <div class="my-2">
+                        <button pButton pRipple label="New Project" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                        <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedProjects()" [disabled]="!selectedProjects || !selectedProjects.length"></button>
+                    </div>
+                </ng-template>
+            </p-toolbar>
+
+            <p-table #dt [value]="projects" [columns]="cols" responsiveLayout="scroll" [rows]="10" [globalFilterFields]="['code','title','status','developers.name','startDate','endDate']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [(selection)]="selectedProjects" selectionMode="multiple" [rowHover]="true" dataKey="id">
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Manage Projects</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..."  class="w-full sm:w-auto"/>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th pSortableColumn="code">Code <p-sortIcon field="code"></p-sortIcon></th>
+                        <th pSortableColumn="title">Title <p-sortIcon field="title"></p-sortIcon></th>
+                        <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+                        <th>Developers</th>
+                        <th pSortableColumn="startDate">Start Date <p-sortIcon field="startDate"></p-sortIcon></th>
+                        <th pSortableColumn="endDate">End Date <p-sortIcon field="endDate"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-project>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="project"></p-tableCheckbox>
+                        </td>
+                  <!-- Project Code Cell -->
+<td class="w-32 min-w-[10rem]">
+    <a [routerLink]="['/pages/projects', project.id]" class="text-blue-500 hover:underline font-medium">
+        {{ project.code || project.id }}
+    </a>
+</td>
+
+<!-- Project Title Cell -->
+<td class="w-32 min-w-[10rem]">
+    <div class="flex items-center">
+        <!-- Project Title Avatar -->
+            <p-avatar 
+                label="{{ project.title ? project.title.charAt(0).toUpperCase() : '?' }}" 
+                class="mr-2" 
+                size="large" 
+                shape="circle" 
+                pTooltip="{{ project.title }}">
+            </p-avatar>
+        
+        <!-- Project Title as a Link -->
+        <a [routerLink]="['/pages/projects', project.id]" class="text-blue-500 hover:underline font-medium">
+            {{ project.title }}
+        </a>
+    </div>
+</td>
+
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Status</span>
+                            <span [class]="'project-badge status-' + (project.status?.toLowerCase()?.replace(' ', '') || 'default')">
+                                {{ project.status }}
+                            </span>
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Developers</span>
+                            <p-avatarGroup>
+                                <p-avatar 
+                                    *ngFor="let dev of project.developers.slice(0, 3)" 
+                                    [image]="dev.avatar" 
+                                    pTooltip="{{ dev.name }}" 
+                                    size="large" 
+                                    shape="circle">
+                                </p-avatar>
+                                <p-avatar 
+                                    *ngIf="project.developers.length > 3" 
+                                    label="+{{ project.developers.length - 3 }}" 
+                                    shape="circle" 
+                                    size="large"
+                                    styleClass="bg-gray-200">
+                                </p-avatar>
+                            </p-avatarGroup>
+                        </td>
+                        
+                        
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">Start Date</span>
+                            {{ project.startDate | date:'mediumDate' }}
+                        </td>
+                        <td style="width:14%; min-width:10rem;">
+                            <span class="p-column-title">End Date</span>
+                            {{ project.endDate | date:'mediumDate' }}
+                        </td>
+                        <td>
+                            <div class="flex">
+                                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editProject(project)"></button>
+                                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteProject(project)"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Project Dialog -->
+        <p-dialog [(visible)]="projectDialog" [style]="{width: '600px'}" header="Project Details" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <!-- Grid Container with No Gaps -->
+                <div class="grid gap-0">
+                    <!-- Full-Width Fields -->
+                    <div class="field col-12 mb-0">
+                        <label for="title">Title</label>
+                        <input
+                            type="text"
+                            pInputText
+                            id="title"
+                            [(ngModel)]="project.title"
+                            required
+                            autofocus
+                            [ngClass]="{'ng-invalid ng-dirty' : submitted && !project.title}"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                        <small
+                            class="ng-dirty ng-invalid mt-1 block text-sm text-red-600"
+                            *ngIf="submitted && !project.title">
+                            Title is required.
+                        </small>
+                    </div>
+        
+                    <div class="field col-12 mb-0">
+                        <label for="description">Description</label>
+                        <textarea
+                            id="description"
+                            pInputTextarea
+                            [(ngModel)]="project.description"
+                            required
+                            rows="3"
+                            cols="20"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </textarea>
+                    </div>
+        
+                    <div class="field col-12 mb-0">
+                        <label for="status">Status</label>
+                        <p-dropdown
+                            id="status"
+                            [options]="statuses"
+                            optionLabel="label"
+                            [(ngModel)]="project.status"
+                            placeholder="Select a Status"
+                            class="block w-full mt-1">
+                            <ng-template pTemplate="selectedItem">
+                                <span [class]="'project-badge status-' + (project.status?.toLowerCase()?.replace(' ', '') || 'default')">
+                                    {{ project.status || 'Unknown Status' }}
+                                </span>
+                            </ng-template>
+                            <ng-template let-status pTemplate="item">
+                                <span [class]="'project-badge status-' + status.value.toLowerCase().replace(' ', '')">
+                                    {{ status.label }}
+                                </span>
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+        
+                    <!-- Two-Column Layout for Dates -->
+                    <div class="field col-6 mb-0">
+                        <label for="startDate">Start Date</label>
+                        <input
+                            type="date"
+                            pInputText
+                            id="startDate"
+                            [(ngModel)]="project.startDate"
+                            required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                    </div>
+        
+                    <div class="field col-6 mb-0">
+                        <label for="endDate">End Date</label>
+                        <input
+                            type="date"
+                            pInputText
+                            id="endDate"
+                            [(ngModel)]="project.endDate"
+                            required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                    </div>
+        
+                    <!-- Skills Input -->
+                    <div class="field col-6 mb-0">
+                        <label for="skills">Skills</label>
+                        <p-multiSelect
+                            id="skills"
+                            [options]="skillsOptions"
+                            [(ngModel)]="selectedSkills"
+                            optionLabel="label"
+                            placeholder="Select Skills"
+                            [maxSelectedLabels]="3"
+                            class="w-full mt-1"
+                            display="chip">
+                        </p-multiSelect>
+                    </div>
+        
+                    <!-- Developers Input - Hidden by Default -->
+                    <div class="field col-6 mb-0" *ngIf="selectedSkills.length > 0">
+                        <label for="developers">Developers</label>
+                        <p-multiSelect
+                            id="developers"
+                            [options]="developersOptions"
+                            [(ngModel)]="selectedDevelopers"
+                            optionLabel="name"
+                            placeholder="Select Developers"
+                            [maxSelectedLabels]="3"
+                            class="w-full mt-1"
+                            display="chip">
+                            <ng-template let-developer pTemplate="item">
+                                <div class="flex items-center">
+                                    <p-avatar [image]="developer.avatar" pTooltip="{{ developer.name }}" class="mr-2"></p-avatar>
+                                    <span>{{ developer.name }}</span>
+                                </div>
+                            </ng-template>
+                            <ng-template let-developer pTemplate="selectedItem">
+                                <div class="flex items-center">
+                                    <p-avatar [image]="developer.avatar" pTooltip="{{ developer.name }}" class="mr-2"></p-avatar>
+                                    <span>{{ developer.name }}</span>
+                                </div>
+                            </ng-template>
+                        </p-multiSelect>
+                    </div>
+                </div>
+            </ng-template>
+        
+            <ng-template pTemplate="footer">
+                <button
+                    pButton
+                    pRipple
+                    label="Cancel"
+                    icon="pi pi-times"
+                    class="p-button-text"
+                    (click)="hideDialog()">
+                </button>
+                <button
+                    pButton
+                    pRipple
+                    label="Save"
+                    icon="pi pi-check"
+                    class="p-button-text"
+                    (click)="saveProject()">
+                </button>
+            </ng-template>
+        </p-dialog>
+        
+
+        <!-- Delete Project Dialog -->
+        <p-dialog [(visible)]="deleteProjectDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span *ngIf="project">Are you sure you want to delete <b>{{project.title}}</b>?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProjectDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Delete Selected Projects Dialog -->
+        <p-dialog [(visible)]="deleteProjectsDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Are you sure you want to delete the selected projects?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteProjectsDialog = false"></button>
+                <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
