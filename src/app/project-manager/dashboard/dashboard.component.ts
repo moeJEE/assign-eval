@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { LayoutService } from '@app/layout/service/app.layout.service';
 
 @Component({
-    templateUrl: './project-manager-dashboard.component.html',
+    templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 

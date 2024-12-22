@@ -10,7 +10,7 @@ import { ButtonModule } from 'primeng/button';
 import { StyleClassModule } from 'primeng/styleclass';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { DashboardsRoutingModule } from '@app/developer/dashboard/dashboard-routing.module';
-import { DashboardComponent } from './project-manager-dashboard.component';
+import { DashboardComponent } from './dashboard.component';
 
 
 @NgModule({

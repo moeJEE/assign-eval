@@ -17,7 +17,7 @@ const routes: Routes = [
       {
         path: 'developer-dashboard',
         loadChildren: () =>
-            import('./developer/dashboard/developer-dashboard.module').then(
+            import('./developer/dashboard/dashboard.module').then(
                 (m) => m.DeveloperModule
             ),
         canActivate: [AuthGuard],
@@ -27,7 +27,7 @@ const routes: Routes = [
         path: 'project-manager-dashboard',
         loadChildren: () =>
           import(
-            './project-manager/dashboard/project-manager-dashboard.module'
+            './project-manager/dashboard/dashboard.module'
           ).then((m) => m.ProjectManagerDashboardModule),
         canActivate: [AuthGuard],
         data: { roles: ['project_manager'] },
